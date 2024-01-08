@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 20px;
+      }
+      h1 {
+        color: #333;
+      }
+      table {
+        width: 80%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      table,
+      th,
+      td {
+        border: 1px solid #ddd;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+      }
+      th {
+        background-color: #4caf50;
+        color: white;
+      }
+      a {
+        text-decoration: none;
+        color: #2196f3;
+      }
+      a:hover {
+        color: #0b7dda;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Welcome to User Dashboard</h1>
+
+    <!-- Daftar dokumen -->
+    <h2>Document List</h2>
+    <table>
+      <tr>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Uploader</th>
+        <th>Upload Date</th>
+        <th>Actions</th>
+      </tr>
+      <!-- Daftar dokumen akan diisi melalui JavaScript -->
+    </table>
+
+    <script>
+      // Panggil API untuk mendapatkan daftar dokumen
+      fetch("/documents")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((documents) => {
+          console.log("Documents received:", documents);
+
+          const tableBody = document.createElement("tbody");
+
+          documents.forEach((doc) => {
+            // Mengganti nama variabel 'document' menjadi 'doc'
+            const row = tableBody.insertRow();
+            row.insertCell().textContent = doc.title;
+            row.insertCell().textContent = doc.description;
+            row.insertCell().textContent = doc.uploader;
+            row.insertCell().textContent = new Date(
+              doc.upload_date
+            ).toLocaleDateString();
+
+            const actionsCell = row.insertCell();
+            const downloadLink = document.createElement("a");
+            downloadLink.href = `/download/${doc.id}`;
+            downloadLink.textContent = "Download";
+            actionsCell.appendChild(downloadLink);
+          });
+
+          document.querySelector("table").appendChild(tableBody);
+        })
+        .catch((error) => console.error("Error fetching documents:", error));
+    </script>
+  </body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 20px;
+      }
+      h1 {
+        color: #333;
+      }
+      table {
+        width: 80%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      table,
+      th,
+      td {
+        border: 1px solid #ddd;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+      }
+      th {
+        background-color: #4caf50;
+        color: white;
+      }
+      a {
+        text-decoration: none;
+        color: #2196f3;
+      }
+      a:hover {
+        color: #0b7dda;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Welcome to Admin Dashboard</h1>
+
+    <!-- Form untuk mengunggah dokumen -->
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <label for="title">Title:</label>
+      <input type="text" id="title" name="title" required />
+
+      <label for="description">Description:</label>
+      <textarea id="description" name="description" required></textarea>
+
+      <label for="uploader">Uploader:</label>
+      <input type="text" id="uploader" name="uploader" required />
+
+      <label for="file">Choose a file:</label>
+      <input type="file" id="file" name="file" required />
+
+      <button type="submit">Upload</button>
+    </form>
+
+    <!-- Daftar dokumen -->
+    <h2>Document List</h2>
+    <table>
+      <tr>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Uploader</th>
+        <th>Upload Date</th>
+        <th>Actions</th>
+      </tr>
+      <!-- Daftar dokumen akan diisi melalui JavaScript -->
+    </table>
+
+    <script>
+      // Panggil API untuk mendapatkan daftar dokumen
+      fetch("/documents")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((documents) => {
+          console.log("Documents received:", documents);
+
+          const tableBody = document.createElement("tbody");
+
+          documents.forEach((doc) => {
+            const row = tableBody.insertRow();
+            row.insertCell().textContent = doc.title;
+            row.insertCell().textContent = doc.description;
+            row.insertCell().textContent = doc.uploader;
+            row.insertCell().textContent = new Date(
+              doc.upload_date
+            ).toLocaleDateString();
+
+            const actionsCell = row.insertCell();
+
+            // Tombol Unduh
+            const downloadLink = document.createElement("a");
+            downloadLink.href = `/download/${doc.id}`;
+            downloadLink.textContent = "Download";
+            actionsCell.appendChild(downloadLink);
+
+            // Tombol Hapus
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Hapus";
+            deleteButton.addEventListener("click", () => handleDelete(doc.id));
+            actionsCell.appendChild(deleteButton);
+          });
+
+          document.querySelector("table").appendChild(tableBody);
+        })
+        .catch((error) => console.error("Error fetching documents:", error));
+
+      // Fungsi untuk menangani penghapusan dokumen
+      function handleDelete(documentId) {
+        // Konfirmasi penghapusan
+        const isConfirmed = confirm(
+          "Apakah Anda yakin ingin menghapus dokumen ini?"
+        );
+
+        if (isConfirmed) {
+          // Panggil API untuk menghapus dokumen
+          fetch(`/delete/${documentId}`, {
+            method: "DELETE",
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then((responseData) => {
+              console.log("Document deleted successfully:", responseData);
+              // Perbarui tampilan setelah penghapusan
+              location.reload();
+            })
+            .catch((error) => console.error("Error deleting document:", error));
+        }
+      }
+    </script>
+  </body>
+</html>
